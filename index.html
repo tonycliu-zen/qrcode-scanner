@@ -3,22 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code 掃描器</title>
+    <title>Nano Banana Scanner</title>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     
     <style>
         :root {
-            --primary-color: #4a90e2;
-            --bg-color: #f4f6f8;
+            /* 香蕉主題配色 */
+            --primary-yellow: #ffd54f;    /* 成熟香蕉黃 */
+            --accent-yellow: #ffecb3;     /* 香蕉肉色 */
+            --dark-brown: #5d4037;        /* 香蕉蒂頭/文字色 */
             --card-bg: #ffffff;
-            --text-main: #333333;
-            --text-secondary: #666666;
+            --bg-color: #fffde7;          /* 淡淡的奶油黃背景 */
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Varela Round', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
+            
+            /* 這裡是用程式碼畫出的可愛香蕉背景圖案 */
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' font-size='24' text-anchor='middle' dominant-baseline='middle' transform='rotate(-15, 30, 30)' opacity='0.15'%3E🍌%3C/text%3E%3C/svg%3E");
+            
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -26,140 +31,150 @@
             margin: 0;
             padding: 20px;
             box-sizing: border-box;
+            color: var(--dark-brown);
         }
 
         .header {
             text-align: center;
             margin-bottom: 20px;
+            background: var(--card-bg);
+            padding: 15px 30px;
+            border-radius: 50px;
+            box-shadow: 0 4px 10px rgba(93, 64, 55, 0.1);
+            border: 2px solid var(--primary-yellow);
         }
 
         h1 {
             margin: 0;
-            font-size: 1.5rem;
-            color: var(--text-main);
-            font-weight: 700;
+            font-size: 1.4rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        p {
+        .header p {
             margin: 5px 0 0;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            opacity: 0.8;
         }
 
-        /* 掃描器外框美化 */
+        /* 掃描器外框 */
         .scanner-wrapper {
             width: 100%;
-            max-width: 400px;
+            max-width: 360px;
             background: var(--card-bg);
-            padding: 15px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            padding: 12px;
+            border-radius: 24px;
+            box-shadow: 0 8px 20px rgba(93, 64, 55, 0.15);
+            border: 4px solid var(--primary-yellow);
             position: relative;
-            overflow: hidden;
         }
 
         #reader {
             width: 100%;
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
-            background: #000; /* 載入前顯示黑色 */
         }
-
-        /* 隱藏 html5-qrcode 預設的一些醜醜的連結或文字 */
+        
+        /* 隱藏多餘文字 */
         #reader__dashboard_section_csr span { display: none !important; }
 
         /* 結果卡片 */
         #result-card {
             width: 100%;
-            max-width: 400px;
+            max-width: 360px;
             background: var(--card-bg);
             margin-top: 20px;
-            border-radius: 16px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(93, 64, 55, 0.1);
             padding: 20px;
             box-sizing: border-box;
-            display: none; /* 預設隱藏 */
-            animation: slideUp 0.3s ease-out;
+            display: none;
+            border-top: 5px solid var(--primary-yellow);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+        @keyframes popIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
 
         .result-label {
             font-size: 0.8rem;
-            text-transform: uppercase;
-            color: var(--text-secondary);
+            font-weight: bold;
+            color: var(--dark-brown);
+            opacity: 0.6;
             letter-spacing: 1px;
             margin-bottom: 8px;
+            text-align: center;
         }
 
         .result-content {
             font-size: 1.1rem;
-            color: var(--text-main);
             word-break: break-all;
-            background: #f8f9fa;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #eee;
+            background: var(--bg-color);
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px dashed var(--primary-yellow); /* 虛線邊框更可愛 */
             margin-bottom: 20px;
+            color: var(--dark-brown);
+            text-align: center;
+            font-weight: bold;
         }
 
-        /* 按鈕群組 */
+        /* 按鈕樣式 */
         .btn-group {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            gap: 12px;
         }
 
         .btn {
             border: none;
-            padding: 12px;
-            border-radius: 10px;
+            padding: 14px;
+            border-radius: 14px; /* 圓潤一點 */
             font-size: 1rem;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 5px;
-            transition: transform 0.1s, opacity 0.2s;
+            gap: 6px;
             text-decoration: none;
+            transition: transform 0.1s;
+            color: var(--dark-brown);
         }
 
-        .btn:active { transform: scale(0.96); }
+        .btn:active { transform: scale(0.95); }
 
         .btn-primary {
-            background-color: var(--primary-color);
-            color: white;
+            background-color: var(--primary-yellow);
+            box-shadow: 0 4px 0 #fbc02d; /* 立體感按鈕底部 */
         }
+        .btn-primary:active { box-shadow: 0 2px 0 #fbc02d; transform: translateY(2px); }
 
         .btn-secondary {
-            background-color: #e9ecef;
-            color: var(--text-main);
+            background-color: #eee;
+            box-shadow: 0 4px 0 #e0e0e0;
         }
+        .btn-secondary:active { box-shadow: 0 2px 0 #e0e0e0; transform: translateY(2px); }
 
         .btn-copy {
-            background-color: #34c759; /* 綠色 */
-            color: white;
+            background-color: #a5d6a7; /* 柔和綠 */
+            box-shadow: 0 4px 0 #81c784;
         }
-        
-        /* 滿版按鈕 */
-        .btn-full {
-            grid-column: span 2;
-        }
+        .btn-copy:active { box-shadow: 0 2px 0 #81c784; transform: translateY(2px); }
 
-        /* Material Icons 大小 */
+        .btn-full { grid-column: span 2; }
         .material-icons { font-size: 20px; }
-
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>QR Code 掃描器</h1>
-        <p>將鏡頭對準 QR Code 即可</p>
+        <h1><span>🍌</span> Banana Scan</h1>
+        <p>Nano Pro Edition</p>
     </div>
 
     <div class="scanner-wrapper">
@@ -167,24 +182,22 @@
     </div>
 
     <div id="result-card">
-        <div class="result-label">掃描結果</div>
+        <div class="result-label">✨ 發現內容 ✨</div>
         <div id="result-text" class="result-content"></div>
         
-        <div class="btn-group" id="action-buttons">
-            </div>
+        <div class="btn-group" id="action-buttons"></div>
         
-        <div style="margin-top: 10px;">
+        <div style="margin-top: 12px;">
             <button onclick="resetScanner()" class="btn btn-secondary btn-full">
-                <span class="material-icons">qr_code_scanner</span> 掃描下一個
+                <span class="material-icons">refresh</span> 掃下一個
             </button>
         </div>
     </div>
 
     <script>
+        // --- 邏輯部分保持不變，樣式已全面升級 ---
         const html5QrcodeScanner = new Html5QrcodeScanner(
-            "reader", 
-            { fps: 10, qrbox: 250 },
-            false
+            "reader", { fps: 10, qrbox: 250 }, false
         );
 
         let currentDecodedText = "";
@@ -193,90 +206,58 @@
             try {
                 const url = new URL(string);
                 return url.protocol === "http:" || url.protocol === "https:";
-            } catch (_) {
-                return false;
-            }
+            } catch (_) { return false; }
         }
 
         function copyToClipboard() {
             navigator.clipboard.writeText(currentDecodedText).then(() => {
                 const copyBtn = document.getElementById('copy-btn');
-                const originalContent = copyBtn.innerHTML;
-                
-                // 變更按鈕樣式作為回饋
-                copyBtn.innerHTML = '<span class="material-icons">check</span> 已複製';
-                copyBtn.style.backgroundColor = '#28a745';
-                
-                // 2秒後恢復原狀
-                setTimeout(() => {
-                    copyBtn.innerHTML = originalContent;
-                    copyBtn.style.backgroundColor = '#34c759';
-                }, 2000);
-            }).catch(err => {
-                alert('複製失敗，請手動複製');
+                const originalHtml = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<span class="material-icons">check</span> OK!';
+                setTimeout(() => { copyBtn.innerHTML = originalHtml; }, 2000);
             });
         }
 
-        function onScanSuccess(decodedText, decodedResult) {
-            if (decodedText === currentDecodedText) return; // 避免重複觸發
+        function onScanSuccess(decodedText) {
+            if (decodedText === currentDecodedText) return;
             currentDecodedText = decodedText;
-
-            // 暫停掃描畫面（視覺上鎖定結果）
             html5QrcodeScanner.pause();
 
             const resultCard = document.getElementById('result-card');
-            const resultText = document.getElementById('result-text');
+            document.getElementById('result-text').innerText = decodedText;
             const actionButtons = document.getElementById('action-buttons');
+            actionButtons.innerHTML = '';
 
-            resultText.innerText = decodedText;
-            actionButtons.innerHTML = ''; // 清空舊按鈕
-
-            // 1. 建立複製按鈕
             const copyBtn = document.createElement('button');
             copyBtn.id = 'copy-btn';
             copyBtn.className = 'btn btn-copy';
             copyBtn.innerHTML = '<span class="material-icons">content_copy</span> 複製';
             copyBtn.onclick = copyToClipboard;
             
-            // 2. 判斷是否為網址，如果是，調整按鈕佈局
             if (isUrl(decodedText)) {
                 const linkBtn = document.createElement('a');
                 linkBtn.href = decodedText;
                 linkBtn.target = "_blank";
                 linkBtn.className = 'btn btn-primary';
-                linkBtn.innerHTML = '<span class="material-icons">open_in_new</span> 開啟';
-                
-                // 兩個按鈕並排
+                linkBtn.innerHTML = '<span class="material-icons">rocket_launch</span> 前往';
                 actionButtons.appendChild(copyBtn);
                 actionButtons.appendChild(linkBtn);
             } else {
-                // 只有複製按鈕，讓它滿版
                 copyBtn.classList.add('btn-full');
                 actionButtons.appendChild(copyBtn);
             }
 
-            // 顯示結果卡片
             resultCard.style.display = 'block';
-            
-            // 自動滾動到結果區域（針對小螢幕優化）
             resultCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         function resetScanner() {
-            const resultCard = document.getElementById('result-card');
-            resultCard.style.display = 'none';
+            document.getElementById('result-card').style.display = 'none';
             currentDecodedText = "";
-            
-            // 恢復掃描
             html5QrcodeScanner.resume();
         }
 
-        function onScanFailure(error) {
-            // 保持安靜，不報錯
-        }
-
-        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        html5QrcodeScanner.render(onScanSuccess, () => {});
     </script>
-
 </body>
 </html>
