@@ -84,4 +84,199 @@
 
         @keyframes slideUp {
             from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1;
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .result-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .result-content {
+            font-size: 1.1rem;
+            color: var(--text-main);
+            word-break: break-all;
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            margin-bottom: 20px;
+        }
+
+        /* 按鈕群組 */
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn {
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: transform 0.1s, opacity 0.2s;
+            text-decoration: none;
+        }
+
+        .btn:active { transform: scale(0.96); }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: #e9ecef;
+            color: var(--text-main);
+        }
+
+        .btn-copy {
+            background-color: #34c759; /* 綠色 */
+            color: white;
+        }
+        
+        /* 滿版按鈕 */
+        .btn-full {
+            grid-column: span 2;
+        }
+
+        /* Material Icons 大小 */
+        .material-icons { font-size: 20px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>QR Code 掃描器</h1>
+        <p>將鏡頭對準 QR Code 即可</p>
+    </div>
+
+    <div class="scanner-wrapper">
+        <div id="reader"></div>
+    </div>
+
+    <div id="result-card">
+        <div class="result-label">掃描結果</div>
+        <div id="result-text" class="result-content"></div>
+        
+        <div class="btn-group" id="action-buttons">
+            </div>
+        
+        <div style="margin-top: 10px;">
+            <button onclick="resetScanner()" class="btn btn-secondary btn-full">
+                <span class="material-icons">qr_code_scanner</span> 掃描下一個
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader", 
+            { fps: 10, qrbox: 250 },
+            false
+        );
+
+        let currentDecodedText = "";
+
+        function isUrl(string) {
+            try {
+                const url = new URL(string);
+                return url.protocol === "http:" || url.protocol === "https:";
+            } catch (_) {
+                return false;
+            }
+        }
+
+        function copyToClipboard() {
+            navigator.clipboard.writeText(currentDecodedText).then(() => {
+                const copyBtn = document.getElementById('copy-btn');
+                const originalContent = copyBtn.innerHTML;
+                
+                // 變更按鈕樣式作為回饋
+                copyBtn.innerHTML = '<span class="material-icons">check</span> 已複製';
+                copyBtn.style.backgroundColor = '#28a745';
+                
+                // 2秒後恢復原狀
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalContent;
+                    copyBtn.style.backgroundColor = '#34c759';
+                }, 2000);
+            }).catch(err => {
+                alert('複製失敗，請手動複製');
+            });
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            if (decodedText === currentDecodedText) return; // 避免重複觸發
+            currentDecodedText = decodedText;
+
+            // 暫停掃描畫面（視覺上鎖定結果）
+            html5QrcodeScanner.pause();
+
+            const resultCard = document.getElementById('result-card');
+            const resultText = document.getElementById('result-text');
+            const actionButtons = document.getElementById('action-buttons');
+
+            resultText.innerText = decodedText;
+            actionButtons.innerHTML = ''; // 清空舊按鈕
+
+            // 1. 建立複製按鈕
+            const copyBtn = document.createElement('button');
+            copyBtn.id = 'copy-btn';
+            copyBtn.className = 'btn btn-copy';
+            copyBtn.innerHTML = '<span class="material-icons">content_copy</span> 複製';
+            copyBtn.onclick = copyToClipboard;
+            
+            // 2. 判斷是否為網址，如果是，調整按鈕佈局
+            if (isUrl(decodedText)) {
+                const linkBtn = document.createElement('a');
+                linkBtn.href = decodedText;
+                linkBtn.target = "_blank";
+                linkBtn.className = 'btn btn-primary';
+                linkBtn.innerHTML = '<span class="material-icons">open_in_new</span> 開啟';
+                
+                // 兩個按鈕並排
+                actionButtons.appendChild(copyBtn);
+                actionButtons.appendChild(linkBtn);
+            } else {
+                // 只有複製按鈕，讓它滿版
+                copyBtn.classList.add('btn-full');
+                actionButtons.appendChild(copyBtn);
+            }
+
+            // 顯示結果卡片
+            resultCard.style.display = 'block';
+            
+            // 自動滾動到結果區域（針對小螢幕優化）
+            resultCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function resetScanner() {
+            const resultCard = document.getElementById('result-card');
+            resultCard.style.display = 'none';
+            currentDecodedText = "";
+            
+            // 恢復掃描
+            html5QrcodeScanner.resume();
+        }
+
+        function onScanFailure(error) {
+            // 保持安靜，不報錯
+        }
+
+        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+    </script>
+
+</body>
+</html>
