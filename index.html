@@ -3,134 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code 掃描器 (網址辨識版)</title>
+    <title>QR Code 掃描器</title>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     
     <style>
+        :root {
+            --primary-color: #4a90e2;
+            --bg-color: #f4f6f8;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --text-secondary: #666666;
+        }
+
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             min-height: 100vh;
             margin: 0;
-            background-color: #f0f2f5;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
-        h1 { color: #333; }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        p {
+            margin: 5px 0 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* 掃描器外框美化 */
+        .scanner-wrapper {
+            width: 100%;
+            max-width: 400px;
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
 
         #reader {
-            width: 300px;
-            background-color: white;
-            padding: 10px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000; /* 載入前顯示黑色 */
         }
 
-        #result-container {
+        /* 隱藏 html5-qrcode 預設的一些醜醜的連結或文字 */
+        #reader__dashboard_section_csr span { display: none !important; }
+
+        /* 結果卡片 */
+        #result-card {
+            width: 100%;
+            max-width: 400px;
+            background: var(--card-bg);
             margin-top: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            display: none;
-            width: 300px;
-            text-align: center;
-            box-sizing: border-box; /* 確保 padding 不會撐大寬度 */
+            box-sizing: border-box;
+            display: none; /* 預設隱藏 */
+            animation: slideUp 0.3s ease-out;
         }
 
-        .result-text {
-            word-break: break-all;
-            color: #555;
-            margin-bottom: 15px;
-            font-size: 14px;
-        }
-
-        /* 連結按鈕的樣式 */
-        .link-btn {
-            display: inline-block;
-            background-color: #007bff;
-            color: white;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-
-        .link-btn:hover {
-            background-color: #0056b3;
-        }
-    </style>
-</head>
-<body>
-
-    <h1>QR Code 掃描器</h1>
-    <div id="reader"></div>
-
-    <div id="result-container">
-        <div id="result-text" class="result-text"></div>
-        <div id="action-area"></div>
-    </div>
-
-    <script>
-        // 判斷是否為網址的輔助函式
-        function isUrl(string) {
-            try {
-                const url = new URL(string);
-                return url.protocol === "http:" || url.protocol === "https:";
-            } catch (_) {
-                return false;
-            }
-        }
-
-        function onScanSuccess(decodedText, decodedResult) {
-            console.log(`掃描文字: ${decodedText}`);
-            
-            const resultContainer = document.getElementById('result-container');
-            const resultText = document.getElementById('result-text');
-            const actionArea = document.getElementById('action-area');
-
-            // 停止掃描，避免重複觸發 (可選)
-            // html5QrcodeScanner.clear();
-
-            resultContainer.style.display = 'block';
-            resultText.innerText = `內容：${decodedText}`;
-            
-            // 清空之前的按鈕
-            actionArea.innerHTML = '';
-
-            // **核心邏輯：判斷是否為網址**
-            if (isUrl(decodedText)) {
-                // 如果是網址，建立一個跳轉按鈕
-                const linkBtn = document.createElement('a');
-                linkBtn.href = decodedText;
-                linkBtn.innerText = "前往連結";
-                linkBtn.target = "_blank"; // 在新分頁開啟
-                linkBtn.className = "link-btn";
-                actionArea.appendChild(linkBtn);
-            } else {
-                // 如果不是網址，顯示提示即可
-                const note = document.createElement('span');
-                note.style.color = '#888';
-                note.innerText = "(這是一段純文字)";
-                actionArea.appendChild(note);
-            }
-        }
-
-        function onScanFailure(error) {
-            // 忽略掃描過程中的錯誤
-        }
-
-        let html5QrcodeScanner = new Html5QrcodeScanner(
-            "reader", 
-            { fps: 10, qrbox: 250 },
-            false
-        );
-
-        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-    </script>
-
-</body>
-</html>
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1;
